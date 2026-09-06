@@ -101,10 +101,7 @@ SPEAKER_SEPARATION = Capability(
 
 METADATA_TAGS = Capability(
     name="metadata tags",
-    provides=(
-        "language / emotion / gender / age / rate / volume tags "
-        "(mapping lands in v0.2)"
-    ),
+    provides=("language / emotion / gender / age / rate / volume tags (mapping lands in v0.2)"),
     # each tag is independent server-side; nothing to require client-side yet
     requirements=(),
     escape_hatch_fields=(
@@ -137,7 +134,4 @@ def check_capabilities(opts: _STTOptions, warn: Callable[[str], None]) -> None:
             continue
         unmet = [r.describe for r in cap.requirements if not r.met(opts)]
         if unmet:
-            warn(
-                f"{cap.name} unavailable ({cap.provides}); "
-                f"unmet requirements: {'; '.join(unmet)}"
-            )
+            warn(f"{cap.name} unavailable ({cap.provides}); unmet requirements: {'; '.join(unmet)}")

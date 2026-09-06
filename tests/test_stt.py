@@ -497,9 +497,7 @@ def _bare_stream(session: _FakeSession, timeout: float = 1.0) -> SpeechStream:
 async def test_connect_ws_maps_handshake_rejection_to_status_error():
     """握手被拒（如 key 无效 401）→ APIStatusError，交由框架归类为不可重试。"""
     request_info = SimpleNamespace()
-    exc = aiohttp.WSServerHandshakeError(
-        request_info, (), status=401, message="Unauthorized"
-    )
+    exc = aiohttp.WSServerHandshakeError(request_info, (), status=401, message="Unauthorized")
     stream = _bare_stream(_FakeSession(exc))
 
     with pytest.raises(APIStatusError) as exc_info:
@@ -659,6 +657,7 @@ async def test_usage_events_flush_on_stream_end():
     run_task.cancel()
     with contextlib.suppress(asyncio.CancelledError):
         await run_task
+
 
 async def test_usage_callback_emits_recognition_usage(stream_emitter):
     """真采集回调：RECOGNITION_USAGE 事件带 request_id 和音频时长。"""

@@ -52,9 +52,7 @@ def _log_unknown_result_fields(result: dict[str, Any]) -> None:
         )
 
 
-def _timed_words(
-    raw_words: Any, *, start_time_offset: float
-) -> list[TimedString] | None:
+def _timed_words(raw_words: Any, *, start_time_offset: float) -> list[TimedString] | None:
     """Map an utterance's ``words`` list to framework TimedStrings.
 
     Doc timestamps are milliseconds; SpeechData expects seconds. Returns None
@@ -214,10 +212,8 @@ class TranscriptMapper:
                     stt.SpeechData(
                         language=language,
                         text=str(pending.get("text") or ""),
-                        start_time=float(pending.get("start_time") or 0.0)
-                        + start_time_offset,
-                        end_time=float(pending.get("end_time") or 0.0)
-                        + start_time_offset,
+                        start_time=float(pending.get("start_time") or 0.0) + start_time_offset,
+                        end_time=float(pending.get("end_time") or 0.0) + start_time_offset,
                         confidence=float(pending.get("confidence") or 0.0),
                     )
                 ],
