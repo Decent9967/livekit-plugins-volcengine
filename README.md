@@ -50,6 +50,7 @@ Full parameter reference: [PARAMETERS.md](PARAMETERS.md).
 uv sync --dev
 uv run pytest
 uv run ruff check .
+uv run ruff format --check .
 ```
 
 E2E runs against a personal Volcengine account; see `tests/e2e/` (in progress).
