@@ -47,7 +47,8 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+extend-exclude = ["refs"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
-ignore = ["SIM102", "SIM108"]
+ignore = ["SIM102", "SIM108", "RUF001", "RUF002", "RUF003"]  # 中文注释/文档串允许全角标点
