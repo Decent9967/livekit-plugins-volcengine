@@ -46,6 +46,8 @@ class _STTOptions:
     output_zh_variant: Literal["traditional", "tw", "hk"] | None
     sensitive_words_filter: dict[str, Any] | None
     corpus: dict[str, Any] | None
+    enable_speaker_info: bool = False
+    enable_lid: bool = False
     # Escape hatch: merged into ``request`` last, so parameters added by the
     # service after this plugin's release remain usable without a new release.
     extra_request_params: dict[str, Any] = field(default_factory=dict)
@@ -63,6 +65,10 @@ class _STTOptions:
             "force_to_speech_time": self.force_to_speech_time,
         }
         # doc: ignored when end_window_size is set; only send when explicitly given
+        if self.enable_speaker_info:
+            request["enable_speaker_info"] = True
+        if self.enable_lid:
+            request["enable_lid"] = True
         if self.vad_segment_duration is not None:
             request["vad_segment_duration"] = self.vad_segment_duration
         if self.enable_accelerate_text:

@@ -28,10 +28,14 @@ from livekit.agents.utils import aio
 from .log import logger
 
 # result-item keys this mapper reads
-_CONSUMED_RESULT_KEYS = frozenset({"text", "confidence", "utterances"})
+_CONSUMED_RESULT_KEYS = frozenset({"text", "confidence", "utterances", "additions"})
 # present in responses but intentionally not mapped yet (see PARAMETERS.md);
 # v0.2 mappings move keys from here to the consumed set
-_KNOWN_DROPPED_RESULT_KEYS = frozenset({"additions"})
+_KNOWN_DROPPED_RESULT_KEYS = frozenset()
+
+# Only mappings backed by real service responses; unknown tags retain the
+# caller's language. English detection does not identify a regional dialect.
+_LANGUAGE_TAGS = {"speech_mand": "zh-CN", "speech_en": "en"}
 
 
 def _log_unknown_result_fields(result: dict[str, Any]) -> None:
@@ -93,6 +97,12 @@ class TranscriptMapper:
         language: str,
     ) -> None:
         _log_unknown_result_fields(result)
+        additions = result.get("additions")
+        if isinstance(additions, dict) and isinstance(additions.get("log_id"), str):
+            logger.debug(
+                "Volcengine recognition response",
+                extra={"request_id": self._request_id, "log_id": additions["log_id"]},
+            )
         text = str(result.get("text") or "")
         utterances = result.get("utterances") or [{}]
         confidence = float(result.get("confidence") or 0.0)
@@ -101,6 +111,14 @@ class TranscriptMapper:
             if not isinstance(utterance, dict):
                 continue
             u_text = str(utterance.get("text", text) or "")
+            additions = utterance.get("additions")
+            additions = additions if isinstance(additions, dict) else {}
+            raw_speaker = additions.get("speaker_id")
+            speaker_id = str(raw_speaker) if type(raw_speaker) in (str, int) else None
+            lid = additions.get("lid_lang")
+            detected_language = (
+                _LANGUAGE_TAGS.get(lid, language) if isinstance(lid, str) else language
+            )
             definite = bool(utterance.get("definite", False))
             # doc timestamps are milliseconds; SpeechData expects seconds
             start_time = float(utterance.get("start_time") or 0.0) / 1000
@@ -141,6 +159,8 @@ class TranscriptMapper:
                     "start_time": start_time,
                     "end_time": end_time,
                     "confidence": confidence,
+                    "language": detected_language,
+                    "speaker_id": speaker_id,
                 }
                 self._event_ch.send_nowait(
                     stt.SpeechEvent(
@@ -148,7 +168,8 @@ class TranscriptMapper:
                         request_id=self._request_id,
                         alternatives=[
                             stt.SpeechData(
-                                language=language,
+                                language=detected_language,
+                                speaker_id=speaker_id,
                                 text=u_text,
                                 # server timestamps are stream-relative; the
                                 # framework advances start_time_offset across
@@ -179,7 +200,8 @@ class TranscriptMapper:
                         request_id=self._request_id,
                         alternatives=[
                             stt.SpeechData(
-                                language=language,
+                                language=detected_language,
+                                speaker_id=speaker_id,
                                 text=u_text,
                                 start_time=start_time + start_time_offset,
                                 end_time=end_time + start_time_offset,
@@ -220,7 +242,8 @@ class TranscriptMapper:
                 request_id=self._request_id,
                 alternatives=[
                     stt.SpeechData(
-                        language=language,
+                        language=pending.get("language", language),
+                        speaker_id=pending.get("speaker_id"),
                         text=str(pending.get("text") or ""),
                         start_time=float(pending.get("start_time") or 0.0) + start_time_offset,
                         end_time=float(pending.get("end_time") or 0.0) + start_time_offset,

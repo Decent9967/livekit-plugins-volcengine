@@ -4,6 +4,9 @@ Volcengine (Doubao) streaming speech recognition (ASR) plugin for [LiveKit Agent
 
 Status: **v0.1.0** — 54 offline tests and real-service validation of the ASR 2.0 profile. See [validation evidence](docs/validation-0.1.0.md) for the tested scope and remaining limits.
 
+Unreleased capability work: typed speaker/LID options and diagnostics; see the
+[capability matrix](docs/capabilities-2026-09-09.md). These APIs are not in v0.1.0.
+
 ## Why another Volcengine plugin
 
 Existing community adapters exist but fall short of what production voice agents need. Differences in this implementation, each backed by a unit test or a filed repro:

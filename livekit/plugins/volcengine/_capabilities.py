@@ -88,34 +88,44 @@ TURN_DETECTION = Capability(
 
 SPEAKER_SEPARATION = Capability(
     name="speaker separation",
-    provides="SpeechData.speaker_id per utterance (mapping lands in v0.2)",
+    provides="SpeechData.speaker_id per utterance",
     requirements=(
-        requires_escape("enable_speaker_info", True, "the service toggle"),
-        requires_escape("ssd_version", "200", "hidden flag from the pre-2.0 docs"),
+        requires("enable_speaker_info", True, "the service toggle"),
         requires("show_utterances", True, "speaker_id rides on utterances[]"),
-        requires_unset("language", "separation runs on the default zh/en model"),
     ),
-    escape_hatch_fields=("enable_speaker_info", "ssd_version"),
-    consumes=("utterances[].speaker_id",),
+    escape_hatch_fields=("enable_speaker_info",),
+    consumes=("utterances[].additions.speaker_id",),
+)
+
+LANGUAGE_IDENTIFICATION = Capability(
+    name="language identification",
+    provides="SpeechData.language for verified Mandarin/English speech tags",
+    requirements=(requires("show_utterances", True, "lid_lang rides on utterances[]"),),
+    escape_hatch_fields=("enable_lid",),
+    consumes=("utterances[].additions.lid_lang",),
 )
 
 METADATA_TAGS = Capability(
     name="metadata tags",
-    provides=("language / emotion / gender / age / rate / volume tags (mapping lands in v0.2)"),
+    provides=("emotion / gender / age / rate / volume tags (not mapped yet)"),
     # each tag is independent server-side; nothing to require client-side yet
     requirements=(),
     escape_hatch_fields=(
-        "enable_lid",
         "enable_emotion_detection",
         "enable_gender_detection",
         "enable_age_detection",
         "show_speech_rate",
         "show_volume",
     ),
-    consumes=("additions.*",),
+    consumes=(),
 )
 
-CAPABILITIES: tuple[Capability, ...] = (TURN_DETECTION, SPEAKER_SEPARATION, METADATA_TAGS)
+CAPABILITIES: tuple[Capability, ...] = (
+    TURN_DETECTION,
+    SPEAKER_SEPARATION,
+    LANGUAGE_IDENTIFICATION,
+    METADATA_TAGS,
+)
 
 
 def check_capabilities(opts: _STTOptions, warn: Callable[[str], None]) -> None:
@@ -129,7 +139,7 @@ def check_capabilities(opts: _STTOptions, warn: Callable[[str], None]) -> None:
     """
     for cap in CAPABILITIES:
         if not cap.always_check and not any(
-            f in opts.extra_request_params for f in cap.escape_hatch_fields
+            bool(_effective(opts, f)) for f in cap.escape_hatch_fields
         ):
             continue
         unmet = [r.describe for r in cap.requirements if not r.met(opts)]

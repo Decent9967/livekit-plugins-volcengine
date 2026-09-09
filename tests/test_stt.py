@@ -775,14 +775,14 @@ def test_default_combination_is_silent(caplog):
     assert caplog.records == []
 
 
-def test_partial_speaker_escape_hatch_warns(caplog):
-    """半配的说话人分离逃生舱（缺 ssd_version）必须警告，不能静默不生效。"""
+def test_speaker_without_utterances_warns(caplog):
+    """当前官方前置条件是 show_utterances，不再要求旧隐藏参数。"""
     with caplog.at_level(logging.WARNING, logger="livekit.plugins.volcengine"):
-        STT(api_key="k", extra_request_params={"enable_speaker_info": True})
+        STT(api_key="k", show_utterances=False, extra_request_params={"enable_speaker_info": True})
 
     warnings = [r.message for r in caplog.records if r.levelno == logging.WARNING]
     speaker = [m for m in warnings if "speaker separation" in m]
-    assert speaker and "ssd_version" in speaker[0]
+    assert speaker and "show_utterances" in speaker[0]
 
 
 def test_fully_wired_speaker_escape_hatch_is_silent(caplog):
@@ -838,4 +838,4 @@ async def test_known_fields_do_not_spam_debug_log(stream_emitter, caplog):
                 "utterances": [{"text": "喂", "definite": True, "start_time": 0, "end_time": 100}],
             }
         )
-    assert [r for r in caplog.records if r.levelno == logging.DEBUG] == []
+    assert not any("unrecognized result fields" in r.message for r in caplog.records)
