@@ -79,6 +79,11 @@ class TranscriptMapper:
         self._speaking = False
         self._utterance_start: float | None = None
         self._pending_interim: dict[str, Any] | None = None
+        self._finalized: set[tuple[float, float, float, str]] = set()
+
+    def start_connection(self) -> None:
+        """Server timestamps restart on reconnect; deduplication is connection-local."""
+        self._finalized.clear()
 
     def handle_result(
         self,
@@ -95,12 +100,17 @@ class TranscriptMapper:
         for utterance in utterances:
             if not isinstance(utterance, dict):
                 continue
-            u_text = str(utterance.get("text") or text)
+            u_text = str(utterance.get("text", text) or "")
             definite = bool(utterance.get("definite", False))
             # doc timestamps are milliseconds; SpeechData expects seconds
             start_time = float(utterance.get("start_time") or 0.0) / 1000
             end_time = float(utterance.get("end_time") or 0.0) / 1000
             words = _timed_words(utterance.get("words"), start_time_offset=start_time_offset)
+            if definite and u_text:
+                key = (start_time_offset, start_time, end_time, u_text)
+                if key in self._finalized:
+                    continue
+                self._finalized.add(key)
 
             if not definite:
                 if not u_text:

@@ -226,6 +226,10 @@ class STT(stt.STT):
         self._session = http_session
         self._streams: weakref.WeakSet[SpeechStream] = weakref.WeakSet()
 
+    @property
+    def model(self) -> str:
+        return self._opts.resource_id
+
     def _ensure_session(self) -> aiohttp.ClientSession:
         if self._session is None:
             self._session = utils.http_context.http_session()
@@ -378,34 +382,35 @@ class SpeechStream(stt.SpeechStream):
                 num_channels=self._opts.num_channels,
                 samples_per_channel=self._opts.sample_rate // 10,
             )
-            ended = False
             async for data in self._input_ch:
                 frames: list[rtc.AudioFrame] = []
                 if isinstance(data, rtc.AudioFrame):
                     frames.extend(bstream.write(data.data.tobytes()))
                 elif isinstance(data, self._FlushSentinel):
                     frames.extend(bstream.flush())
-                    ended = True
                 for frame in frames:
                     seq += 1
                     self._audio_duration_collector.push(frame.duration)
                     payload = asr_protocol.build_audio_only_request(
-                        frame.data.tobytes(), seq, last=ended
+                        frame.data.tobytes(), seq, last=False
                     )
                     await self._safe_send(ws, payload)
-                if ended:
+                if isinstance(data, self._FlushSentinel):
                     self._audio_duration_collector.flush()
             self._audio_duration_collector.flush()
-            # input closed without a flush sentinel: still mark the stream ended
-            if not ended:
-                final_frame = asr_protocol.build_audio_only_request(b"", -seq, last=True)
-                await self._safe_send(ws, final_frame)
+            # A flush may have no remainder at an exact chunk boundary. End input
+            # always sends a terminal packet; flush alone does not close the stream.
+            seq += 1
+            final_frame = asr_protocol.build_audio_only_request(b"", seq, last=True)
+            await self._safe_send(ws, final_frame)
             closing = True
 
         @utils.log_exceptions(logger=logger)
         async def recv_task(ws: aiohttp.ClientWebSocketResponse) -> None:
             while True:
                 msg = await ws.receive()
+                if msg.type == aiohttp.WSMsgType.ERROR:
+                    raise APIConnectionError("volcengine asr WebSocket error", retryable=True)
                 if msg.type in (
                     aiohttp.WSMsgType.CLOSED,
                     aiohttp.WSMsgType.CLOSE,
@@ -425,6 +430,7 @@ class SpeechStream(stt.SpeechStream):
         while True:
             closing = False
             ws = await self._connect_ws()
+            self._transcript.start_connection()
             try:
                 tasks = [
                     asyncio.create_task(send_task(ws)),
@@ -523,11 +529,18 @@ class SpeechStream(stt.SpeechStream):
         if message.message_type == asr_protocol.SERVER_ERROR_RESPONSE:
             raise APIStatusError(
                 f"volcengine asr error {message.error_code}: {message.payload}",
+                status_code=message.error_code if message.error_code is not None else -1,
+                request_id=self._request_id,
+                body=message.payload,
             )
 
         if not isinstance(message.payload, dict):
             return
         results = message.payload.get("result")
+        # The current backend consumes object-shaped results; the archived
+        # reference declares a list. Both carry the same result item schema.
+        if isinstance(results, dict):
+            results = [results]
         if not isinstance(results, list):
             return
         for result in results:

@@ -10,7 +10,7 @@
    - [ ] enable_itn 文档默认 true，服务端实际行为
    - [ ] result_type=single 时多分句只回增量
    - [ ] force_to_speech_time=1000 无首句判停异常
-3. **空 final**：静音段后观察 definite 且 text 为空 → 脚本末尾统计 "empty finals observed" ≥1 即验证修复路径真实存在。
+3. **空 final**：需要观察原始响应中的 definite 且 text 为空，再核对 END_OF_SPEECH；CLI 的普通事件输出无法证明原始空 final，不能以空字符串 FINAL 计数替代。
 4. **错误面**：故意用错 key 重跑 → 应立刻收到 APIStatusError 带服务端错误码，而不是挂到超时。
 5. **两个 resource_id**：默认 seedasr 2.0 跑一遍 + `--resource-id volc.bigasr.sauc.duration` 跑一遍。
 6. （可选）`extra_request_params={"enable_speaker_info": True, "ssd_version": "200"}` 观察返回是否带 speaker_id——同时回答公司侧 create_stt 的 ssd_version 断点问题。
@@ -19,9 +19,9 @@
 
 7. **闲置断连**：长静音（>60s 不说话）后继续说话，连接是否仍有效？若被服务端掐断，
    需评估 KeepAlive 机制（参考 deepgram 的 KeepAlive 消息模式）。
-8. **限流退避**：触发限流（若可模拟）时观察错误码与表现——当前实现：服务端错误帧
-   → APIStatusError 不可重试。若火山限流走错误帧，应改为可重试+指数退避
-   （参考 gladia 对 429 的 backoff 处理：1s 起、上限 30s、成功重置）。
+8. **限流退避**：触发限流（若可模拟）时观察错误码与表现。当前保留服务端错误码并交给
+   锁定 SDK 的 APIStatusError/retry loop；未知的提供商业务码不等同于 HTTP 状态。
+   没有真实证据前不宣称已验证限流策略，也不添加第二套重试循环。
 9. **发送中途断线**：真实网络抖动下（可切代理模拟），验证发送侧错误被包装为
    可重试 APIConnectionError 且框架成功重连（本插件已有单测，E2E 复核真实环境）。
 10. **计费口径**：观察响应中 audio_info.duration 与实际发送时长的关系——
@@ -40,3 +40,5 @@
 ## 结果记录
 
 每项结论一行记入本文件底部（合并 PR 前的证据清单）；有出入的默认值回改 `stt.py` 并注明文档依据。
+
+2026-09-09：已完成 ASR 2.0 默认生产参数、合成中文两句新旧对照、错误 key、65 秒持续发送静音后继续说话、真实响应脱敏存档。详见 [验证报告](../../docs/validation-0.1.0.md)。其余项目仍未验证，不能以此次通过代替。

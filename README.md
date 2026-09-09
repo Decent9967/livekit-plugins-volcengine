@@ -2,7 +2,7 @@
 
 Volcengine (Doubao) streaming speech recognition (ASR) plugin for [LiveKit Agents](https://github.com/livekit/agents) — v3 `bigmodel_async` bidirectional WebSocket, implemented from the [public API reference](https://docs.volcengine.com/docs/6561/2630027).
 
-Status: **v0.1 in development** — STT implemented and unit-tested (44 tests); E2E validation against a live account in progress (see `tests/e2e/CHECKLIST.md`). API may change before 0.1.0.
+Status: **v0.1.0** — 54 offline tests and real-service validation of the ASR 2.0 profile. See [validation evidence](docs/validation-0.1.0.md) for the tested scope and remaining limits.
 
 ## Why another Volcengine plugin
 
@@ -18,10 +18,10 @@ Existing community adapters exist but fall short of what production voice agents
 ## Install
 
 ```bash
-pip install livekit-plugins-volcengine
+pip install "livekit-plugins-volcengine @ git+https://github.com/Decent9967/livekit-plugins-volcengine.git@v0.1.0"
 ```
 
-> The PyPI distribution name is still being finalized (a third party currently publishes an unrelated package under this name). Until then, install from a git ref.
+> This release is distributed through GitHub, not PyPI. Use the version tag above after release; during review use the exact candidate commit. The PyPI distribution name is still being finalized.
 
 ## Usage
 
@@ -53,7 +53,7 @@ uv run ruff check .
 uv run ruff format --check .
 ```
 
-E2E runs against a personal Volcengine account; see `tests/e2e/` (in progress).
+E2E runs against a personal Volcengine account; see `tests/e2e/`. Never commit API keys or customer recordings. The checked-in response fixture uses synthetic speech and removes provider identifiers.
 
 ## Sources
 

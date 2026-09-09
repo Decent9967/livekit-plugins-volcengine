@@ -6,7 +6,7 @@ Usage:
 Audio must be 16 kHz mono 16-bit PCM WAV (convert with:
 ffmpeg -i in.mp3 -ac 1 -ar 16000 -acodec pcm_s16le out.wav).
 
-Verifies: connection, interim/final event flow, empty-definite -> END_OF_SPEECH,
+Verifies: connection, interim/final/end event flow,
 server error surfacing (wrong key), and echoes the request payload for
 default-value checks against the current docs.
 """
@@ -22,6 +22,8 @@ import time
 import wave
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+
+from livekit.agents.utils import http_context
 
 from livekit import rtc
 from livekit.plugins.volcengine.stt import (
@@ -63,19 +65,26 @@ async def main() -> None:
         stream.end_input()
 
     feed_task = asyncio.create_task(feed())
-    empty_finals = 0
-    async for event in stream:
-        elapsed = (time.perf_counter() - start) * 1000
-        if event.type.name in ("FINAL_TRANSCRIPT", "INTERIM_TRANSCRIPT"):
-            text = event.alternatives[0].text
-            if event.type.name == "FINAL_TRANSCRIPT" and not text:
-                empty_finals += 1
-            print(f"[{elapsed:8.0f} ms] {event.type.name:<18} {text!r}")
-        else:
-            print(f"[{elapsed:8.0f} ms] {event.type.name}")
-    await feed_task
-    print(f"done; empty finals observed: {empty_finals}")
+    try:
+        async for event in stream:
+            elapsed = (time.perf_counter() - start) * 1000
+            if event.type.name in ("FINAL_TRANSCRIPT", "INTERIM_TRANSCRIPT"):
+                text = event.alternatives[0].text
+                print(f"[{elapsed:8.0f} ms] {event.type.name:<18} {text!r}")
+            else:
+                print(f"[{elapsed:8.0f} ms] {event.type.name}")
+        await feed_task
+    finally:
+        feed_task.cancel()
+        await asyncio.gather(feed_task, return_exceptions=True)
+        await stream.aclose()
+        await stt.aclose()
+
+
+async def run() -> None:
+    async with http_context.open():
+        await main()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(run())
