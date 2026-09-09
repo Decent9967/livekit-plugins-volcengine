@@ -68,6 +68,8 @@ companions cannot drift.
 - utterance state (`TranscriptMapper`) ↔ survives retries *by decision*
   (recognized-before-the-drop text is real); never fabricated after failure —
   `commit_pending` runs only on normal completion
+- finalized-utterance deduplication ↔ cleared on each new connection, because
+  provider timestamps restart even when an option update reconnects inside `_run`
 
 ## Combination contract
 

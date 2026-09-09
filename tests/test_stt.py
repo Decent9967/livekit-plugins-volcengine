@@ -331,9 +331,11 @@ class ScriptedWS:
         self._hold_open = hold_open
         self.closed = False
         self.sent: list[bytes] = []
+        self.first_send = asyncio.Event()
 
     async def send_bytes(self, data):
         self.sent.append(data)
+        self.first_send.set()
 
     async def receive(self):
         if self._script:
@@ -621,15 +623,16 @@ async def test_update_options_reconnects_with_new_config():
     assert len(ws1.sent) == 1  # 第一条连接只发了建流配置帧
 
     fake.update_options(end_window_size=1000)
-    await asyncio.sleep(0.01)  # 让 _run 循环拆旧连接、开新连接
-
-    assert ws1.closed is True
-    assert len(ws2.sent) == 1
-    assert _decode_config(ws2.sent[0])["request"]["end_window_size"] == 1000
-
-    run_task.cancel()
-    with contextlib.suppress(asyncio.CancelledError):
-        await run_task
+    try:
+        # Wait for the observable reconnect, not a platform-dependent 10 ms sleep.
+        await asyncio.wait_for(ws2.first_send.wait(), timeout=2)
+        assert ws1.closed is True
+        assert len(ws2.sent) == 1
+        assert _decode_config(ws2.sent[0])["request"]["end_window_size"] == 1000
+    finally:
+        run_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await run_task
     assert ws2.closed is True
 
 
@@ -649,10 +652,10 @@ async def test_usage_events_flush_on_stream_end():
     fake._input_ch.send_nowait(fake._FlushSentinel())
     await flush()
 
-    # sentinel 触发 flush：一条帧 10ms 全额入账；末帧序列号为负（流结束）
+    # sentinel 只冲刷缓冲，输入关闭才发送结束包。
     assert fake._audio_duration_collector.flushed == [pytest.approx(0.01)]
     assert len(ws.sent) == 2
-    assert int.from_bytes(ws.sent[-1][4:8], "big", signed=True) < 0
+    assert int.from_bytes(ws.sent[-1][4:8], "big", signed=True) > 0
 
     run_task.cancel()
     with contextlib.suppress(asyncio.CancelledError):

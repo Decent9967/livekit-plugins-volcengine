@@ -4,7 +4,7 @@ Staged plan for this repository. Gated items name their trigger and are done whe
 
 ## v0.1.0 — first public release (current)
 
-Done and unit-tested (44 tests):
+Implemented and covered by offline tests:
 
 - Streaming STT over the v3 `bigmodel_async` WebSocket: two-pass finals, full result/utterance traversal, server error frames surfaced as `APIStatusError`, reconnection delegated to the framework retry loop.
 - Layered module split — `protocol` / `_options` / `_capabilities` / `_transcript` / transport — see [DESIGN.md](DESIGN.md).
@@ -16,10 +16,14 @@ Done and unit-tested (44 tests):
 - Escape hatch merges last and can override first-class values (pinned by test); unrecognized response fields are observable at debug level.
 - `corpus.context` / `sensitive_words_filter` auto-serialization to the JSON strings the API expects.
 
-Remaining gates for the 0.1.0 tag:
+Scope of the 0.1.0 tag:
 
-- [ ] E2E checklist against a live account (`tests/e2e/CHECKLIST.md`, 13 observations).
-- [ ] Draft the upstream proposal issue.
+- The default ASR 2.0 / PCM / two-pass profile is validated against a live account;
+  results and remaining observations from the broader checklist are tracked in
+  [validation evidence](docs/validation-0.1.0.md). Untested optional capabilities
+  are not claimed as production-validated.
+- An [upstream proposal draft](docs/upstream-proposal.md) is prepared; submission
+  is separate from this standalone release.
 
 ## v0.2 — production hardening
 
@@ -27,7 +31,7 @@ Remaining gates for the 0.1.0 tag:
 |---|---|
 | WebSocket keepalive (`ws_connect(heartbeat=...)`, one line) | E2E item 7 observes idle disconnects **and** the gateway answers pings — a client heartbeat against a ping-deaf gateway would *cause* drops |
 | Speaker separation first-class: `enable_speaker_info` + `ssd_version` params, `SpeechData.speaker_id` mapping — graduated as **one bundle** (flag + hidden `ssd_version` + `show_utterances` + language-unset constraint) so the companion settings can't drift apart | in-production verification that separation works under the production parameter set |
-| Response mapping batch: `additions` tags (language/emotion/gender/age) → `SpeechData.metadata` + framework `stt_context`; detected language replaces the hardcoded `zh-CN` (LID enum → BCP-47 translation table); `audio_info.duration` reconciles `RECOGNITION_USAGE` server-side; `result_type=full` support in the mapper (currently single-mode semantics — a full-mode cumulative payload would re-emit per response) | none — pure mapping over data already returned; exact `additions` placement confirmed during E2E. (`words[]` → `SpeechData.words` and the ms→s timestamp conversion already shipped in v0.1.) |
+| Response mapping batch: metadata tags and server-side usage; full-result mode validation | A real consumer needs these fields and representative response fixtures are available. v0.1 deduplicates definite utterances within a connection, but full-result mode is not live-validated. |
 | Metadata tag params first-class (`show_speech_rate`, `show_volume`, `enable_lid`, `enable_emotion_detection`, `enable_gender_detection`, `enable_age_detection`) | ships together with the mapping batch above |
 | Energy gating — skip silent audio before send (gladia-style, a billing optimization) | only if billing is confirmed to charge silent audio |
 
