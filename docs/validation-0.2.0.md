@@ -31,10 +31,14 @@ This release does not upgrade the backend or publish to PyPI.
         "speech_rate": 3.21,  # provider tokens/s
         "volume": 76.47,  # provider dB; reference level not established
         "age": 43.14,  # provider estimate
-        "gender": "female", "gender_score": 0.99,
-        "emotion": "neutral", "emotion_score": 0.89,
-        "emotion_degree": "weak", "emotion_degree_score": 0.99,
-        "lid_lang": "speech_mand", "lid_lang_score": 0.98,
+        "gender": "female",
+        "gender_score": 0.99,
+        "emotion": "neutral",
+        "emotion_score": 0.89,
+        "emotion_degree": "weak",
+        "emotion_degree_score": 0.99,
+        "lid_lang": "speech_mand",
+        "lid_lang_score": 0.98,
     }
 }
 ```
@@ -80,11 +84,15 @@ and real metadata results. They cannot measure future model accuracy.
 Corpus treatment (same audio, separate connection):
 
 ```python
-STT(corpus={"context": {
-    "hotwords": [{"word": "青岚绮梦"}, {"word": "云岫"}],
-    "context_type": "dialog_ctx",
-    "context_data": [{"speaker": "bot", "text": "店内的青岚绮梦是真丝围巾，云岫是外套。"}],
-}})
+STT(
+    corpus={
+        "context": {
+            "hotwords": [{"word": "青岚绮梦"}, {"word": "云岫"}],
+            "context_type": "dialog_ctx",
+            "context_data": [{"speaker": "bot", "text": "店内的青岚绮梦是真丝围巾，云岫是外套。"}],
+        }
+    }
+)
 ```
 
 One initial baseline call returned APIStatusError before the probe recorded
