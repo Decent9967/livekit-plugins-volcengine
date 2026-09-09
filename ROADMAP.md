@@ -41,7 +41,26 @@ Scope of the 0.1.0 tag:
 - Seamless configuration updates: actual mid-speech update demand; current reconnect can discard a partial audio tail.
 - Keepalive: reproduced idle disconnect and a ping-responsive gateway.
 
-## v0.3+ — upstreaming into livekit/agents
+## Next candidate — bidirectional TTS
+
+- Implemented locally: PCM TTS, SDK lifecycle integration and provider usage;
+  [scope and evidence](docs/tts.md).
+- Release gate: TTS service access, real audio/cancel/next-reply validation and
+  backend microphone E2E. Access and four VV-voice provider smoke cases now pass;
+  backend microphone E2E passes for Chinese, English, interruption and recovery.
+- Idle reuse: SDK connection-age retirement passes real 0/10/30/60-second probes
+  with retries disabled; see docs/tts.md for the policy and evidence limits.
+- Ten VV listening samples accepted by the user; see docs/tts.md for scope.
+- Remaining release work: consumer
+  regression against the published version without PYTHONPATH overrides.
+- TTS is assigned v0.3.0 after the VV listening and idle-reuse qualification.
+
+TTS candidate now also models filters, language/dialect, pronunciation, pitch,
+LaTeX, audible watermark, caller-owned section IDs and subtitle events. Seven
+real VV requests verified audio/subtitle responses; see docs/tts.md for limits
+and the emoji flag discrepancy. Other controls still need live qualification.
+
+## Community contribution — upstreaming into livekit/agents
 
 - Port tests to monorepo conventions (`tests/test_plugin_volcengine_stt.py`; study the `toxic_proxy` / `fake_stt` / `virtual_time` fixtures).
 - Proposal issue referencing the 29-plugin implementation audit, the parameter coverage table, and the differentiators listed in the README.

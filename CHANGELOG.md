@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+## 0.3.0
+
+- Add V3 bidirectional `TTS`: incremental/complete text, PCM audio, lifecycle
+  cleanup, SDK-owned retries and raw provider billing-character usage events.
+- Add protocol fixtures from the official demo, local WebSocket regression
+  tests and an opt-in real-service smoke script. Real audio qualification is
+  completed for four VV-voice smoke cases and browser Chinese/English replies,
+  interruption and recovery. The user accepted ten VV listening samples covering
+  English numbers/symbols, mixed language, filters and pronunciation.
+- Retire TTS pooled connections after 10 seconds of connection age at the next
+  acquisition, using the SDK pool. Real 0/10/30/60-second idle probes pass with
+  retries disabled; active synthesis is not interrupted by connection expiry.
+- Add optional typed filters, language/dialect, pronunciation dictionary, pitch,
+  LaTeX, audible watermark, caller-owned section IDs and raw subtitle events.
+  Seven real VV control requests returned audio/subtitles; document the emoji
+  flag discrepancy without silently inverting provider values.
+
 ## 0.2.0
 
 - Typed speaker and language-identification options with standard SpeechData mappings.

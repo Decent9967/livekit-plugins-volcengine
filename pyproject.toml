@@ -4,12 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "livekit-plugins-volcengine"
-description = "Volcengine (Doubao) streaming ASR plugin for LiveKit Agents"
+description = "Volcengine (Doubao) streaming STT and TTS plugin for LiveKit Agents"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [{ name = "Decent9967" }]
-keywords = ["livekit", "agents", "plugin", "volcengine", "doubao", "asr", "stt"]
+keywords = ["livekit", "agents", "plugin", "volcengine", "doubao", "asr", "stt", "tts"]
 classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
