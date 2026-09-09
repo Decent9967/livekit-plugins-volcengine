@@ -1,10 +1,15 @@
 # livekit-plugins-volcengine
 
-Volcengine (Doubao) streaming speech recognition (ASR) plugin for [LiveKit Agents](https://github.com/livekit/agents) — v3 `bigmodel_async` bidirectional WebSocket, implemented from the [public API reference](https://docs.volcengine.com/docs/6561/2630027).
+Volcengine (Doubao) streaming speech plugin for [LiveKit Agents](https://github.com/livekit/agents). STT uses v3 `bigmodel_async`; TTS uses v3 `tts/bidirection`.
 
-Status: **v0.2.0** — typed speaker/language and acoustic metadata options, with
-real-service qualification of single/full ASR 2.0 profiles. See
-[validation evidence](docs/validation-0.2.0.md) for tested scope and limits.
+Status: **v0.3.0** — bidirectional TTS alongside typed STT speaker/language and
+acoustic metadata options. STT qualification is retained from
+[v0.2.0](docs/validation-0.2.0.md).
+
+`TTS` supports incremental and complete text, PCM audio, cancellation, provider
+usage, typed controls and subtitle events. VV-voice qualification includes
+provider probes, microphone/browser E2E and ten user-accepted listening samples.
+See [TTS usage and validation](docs/tts.md).
 
 ## Why another Volcengine plugin
 
@@ -20,7 +25,7 @@ Existing community adapters exist but fall short of what production voice agents
 ## Install
 
 ```bash
-pip install "livekit-plugins-volcengine @ git+https://github.com/Decent9967/livekit-plugins-volcengine.git@v0.2.0"
+pip install "livekit-plugins-volcengine @ git+https://github.com/Decent9967/livekit-plugins-volcengine.git@v0.3.0"
 ```
 
 > This release is distributed through GitHub, not PyPI. Use the version tag above after release; during review use the exact candidate commit. The PyPI distribution name is still being finalized.

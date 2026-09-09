@@ -1,0 +1,10 @@
+Volcengine V3 TTS integration
+
+The TTS event framing and connection lifecycle were informed by the
+Apache License 2.0 livekit-plugins-bytedance adapter by Ao-Last and its
+controlled fork maintained in wansheli/voice-agent-server.
+The new adapter uses its own validated codec and the LiveKit SDK retry model.
+
+Upstream project: https://github.com/aolast/livekit-plugins-extra
+Upstream directory: livekit-plugins/livekit-plugins-bytedance
+Reference revision: 71954fe6d0188833dd7eb4f53dfa5bbc3e2fffbd
