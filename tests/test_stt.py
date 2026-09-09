@@ -765,7 +765,7 @@ def test_warns_on_event_degrading_combinations(caplog):
     nonstream_warnings = [m for m in warnings if "enable_nonstream=True" in m]
     assert nonstream_warnings and "turn detection" in nonstream_warnings[0]
     assert any("show_utterances=True" in m for m in warnings)
-    assert any("result_type='single'" in m for m in warnings)
+    assert not any("result_type='single'" in m for m in warnings)
     assert any("audio_format" in m for m in warnings)
 
 

@@ -9,3 +9,9 @@ It contains no customer recording. Provider log/request/user identifiers were re
 The live response uses an object for `result`; the archived September 1 reference
 describes a list. Tests cover both. This fixture establishes response shape and
 event mapping, not accuracy across accents, noise conditions, or production traffic.
+
+
+`synthetic-bilingual.json` and `batch2-*.json` are also synthetic live responses.
+The latter are compact JSON to keep the complete sequences economical.
+Their input recipes, options, interpretation and limitations are documented in
+`docs/validation-0.2.0.md`. No credentials or provider identifiers are retained.

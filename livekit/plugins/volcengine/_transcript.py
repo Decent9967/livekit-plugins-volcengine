@@ -19,6 +19,7 @@ Semantic rules enforced here (each backed by a unit test):
 from __future__ import annotations
 
 import logging
+import math
 from typing import Any
 
 from livekit.agents import stt
@@ -36,6 +37,34 @@ _KNOWN_DROPPED_RESULT_KEYS = frozenset()
 # Only mappings backed by real service responses; unknown tags retain the
 # caller's language. English detection does not identify a regional dialect.
 _LANGUAGE_TAGS = {"speech_mand": "zh-CN", "speech_en": "en"}
+
+
+def _metadata(additions: dict[str, Any]) -> dict[str, Any] | None:
+    """Expose observed provider fields without copying arbitrary response data."""
+    values: dict[str, Any] = {}
+    for name in ("emotion", "gender", "emotion_degree", "lid_lang"):
+        value = additions.get(name)
+        if isinstance(value, str) and value:
+            values[name] = value
+    for name in (
+        "speech_rate",
+        "volume",
+        "age",
+        "emotion_score",
+        "gender_score",
+        "emotion_degree_score",
+        "lid_lang_score",
+    ):
+        value = additions.get(name)
+        if type(value) not in (str, int, float):
+            continue
+        try:
+            number = float(value)
+        except (ValueError, OverflowError):
+            continue
+        if math.isfinite(number):
+            values[name] = number
+    return {"volcengine": values} if values else None
 
 
 def _log_unknown_result_fields(result: dict[str, Any]) -> None:
@@ -113,6 +142,7 @@ class TranscriptMapper:
             u_text = str(utterance.get("text", text) or "")
             additions = utterance.get("additions")
             additions = additions if isinstance(additions, dict) else {}
+            metadata = _metadata(additions)
             raw_speaker = additions.get("speaker_id")
             speaker_id = str(raw_speaker) if type(raw_speaker) in (str, int) else None
             lid = additions.get("lid_lang")
@@ -161,6 +191,7 @@ class TranscriptMapper:
                     "confidence": confidence,
                     "language": detected_language,
                     "speaker_id": speaker_id,
+                    "metadata": metadata,
                 }
                 self._event_ch.send_nowait(
                     stt.SpeechEvent(
@@ -170,6 +201,7 @@ class TranscriptMapper:
                             stt.SpeechData(
                                 language=detected_language,
                                 speaker_id=speaker_id,
+                                metadata=metadata,
                                 text=u_text,
                                 # server timestamps are stream-relative; the
                                 # framework advances start_time_offset across
@@ -202,6 +234,7 @@ class TranscriptMapper:
                             stt.SpeechData(
                                 language=detected_language,
                                 speaker_id=speaker_id,
+                                metadata=metadata,
                                 text=u_text,
                                 start_time=start_time + start_time_offset,
                                 end_time=end_time + start_time_offset,
@@ -244,6 +277,7 @@ class TranscriptMapper:
                     stt.SpeechData(
                         language=pending.get("language", language),
                         speaker_id=pending.get("speaker_id"),
+                        metadata=pending.get("metadata"),
                         text=str(pending.get("text") or ""),
                         start_time=float(pending.get("start_time") or 0.0) + start_time_offset,
                         end_time=float(pending.get("end_time") or 0.0) + start_time_offset,

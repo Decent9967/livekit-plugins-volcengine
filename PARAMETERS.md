@@ -64,26 +64,26 @@ Anything this plugin does not model yet can be passed through directly — value
 STT(
     ...,
     extra_request_params={
-        "show_speech_rate": True,
+        "future_provider_option": True,  # example placeholder; use a documented service key
     },
 )
 ```
 
 Use it for newly added service parameters without waiting for a plugin release. Because it merges last, an entry whose name matches a first-class option **overrides** it — you can also use it to try changed server semantics before a plugin release. If a parameter turns out to be broadly useful, it will graduate into a first-class option (see `DESIGN.md` for the graduation path).
 
-## Capability coverage (unreleased)
+## Capability coverage (v0.2.0)
 
-Current matrix and evidence: [2026-09-09 capability validation](docs/capabilities-2026-09-09.md).
+Current matrix and evidence: [v0.2.0 qualification](docs/validation-0.2.0.md).
 
 | Capability | Input | Output | Verification |
 |---|---|---|---|
 | Speaker separation | `enable_speaker_info: bool = False` | `utterances[].additions.speaker_id` → `SpeechData.speaker_id` | Live synthetic two-voice stream, IDs 0/1 |
 | Language identification | `enable_lid: bool = False` | `utterances[].additions.lid_lang` → `SpeechData.language` | Live Mandarin/English; only `speech_mand` → `zh-CN`, `speech_en` → `en` |
 | Diagnostics | No new option | `result.additions.log_id` + request_id in structured DEBUG logs | Live shape + offline log capture |
-| Speech rate / volume / emotion / gender / age | Escape hatch | Not mapped | Deferred until samples and consumer contract |
-| Full results | `result_type="full"` | Connection-local definite dedup exists since v0.1 | Live cumulative semantics not verified |
+| Speech rate / volume / emotion / gender / age | Five typed flags, default false | `SpeechData.metadata["volcengine"]` | Real synthetic responses; model estimates, not validated traits |
+| Full results | `result_type="full"` | Connection-local definite dedup exists since v0.1 | Live two-sentence and repeated-sentence profiles passed |
 | Usage | No new option | Local sent-audio duration | Server `audio_info.duration` not used for billing |
-| Corpus | First-class `corpus` | Shapes recognition at source | Request serialization tested; effectiveness not established |
+| Corpus | First-class `corpus` | Shapes recognition at source | Two domain names corrected in one controlled live example |
 | POI / music | Escape hatch possible | No dedicated integration | No current consumer |
 | Legacy `ssd_version` | Escape hatch possible | Not required by current documented speaker path | Omitted in successful live ASR 2.0 probe |
 
@@ -95,15 +95,25 @@ Speaker labels are connection-local anonymous labels, not business identities.
 Both features require `show_utterances=True` to expose their fields. Unknown,
 missing, and unsupported language labels retain the configured language (or the
 default `zh-CN`); English recognition does not establish a regional dialect.
-No raw metadata interface or speaker-trait context hook is introduced yet.
+Observed LID labels/scores and acoustic/trait fields are available in namespaced metadata; no speaker-trait context hook is introduced.
 
 ## Combination hazards
 
-The constructor warns when `enable_nonstream=False`, `show_utterances=False`,
-or `result_type="full"` departs from the validated conversational profile.
-Full mode already deduplicates definite utterances; it still needs live replay
-validation before recommending it. Speaker/LID without utterances also warns.
+The constructor warns when `enable_nonstream=False` or `show_utterances=False`
+departs from the validated two-pass profile. Full mode deduplicates definite
+utterances and has live replay coverage. Speaker/LID/metadata without utterances also warns.
 These warnings do not reject provider-supported captioning use cases.
 
 Frames from LiveKit are raw PCM: declaring a compressed/container format does
 not encode them. Corpus changes reconnect; no per-turn config channel exists.
+
+## Acoustic and trait options
+
+`show_speech_rate`, `show_volume`, `enable_emotion_detection`,
+`enable_gender_detection`, and `enable_age_detection` are optional booleans
+(default false), also accepted by `update_options`. Disabled values are omitted
+from requests; `extra_request_params` still overrides them. Output keys, types,
+units and limitations are documented in the qualification report.
+
+Hot updates reconnect and can discard a sub-100ms unsent audio tail. Configure
+before speech or at a deliberate idle boundary; this is not seamless migration.

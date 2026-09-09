@@ -1,0 +1,1 @@
+{"provider":"batch2-silence","outcome":"complete","responses":[{"payload":{"result":{"additions":{}}},"last":false},{"payload":{"audio_info":{"duration":3000},"result":{"additions":{}}},"last":true}],"options":{},"pcm_duration":3.0}

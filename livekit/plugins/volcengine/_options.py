@@ -48,6 +48,11 @@ class _STTOptions:
     corpus: dict[str, Any] | None
     enable_speaker_info: bool = False
     enable_lid: bool = False
+    show_speech_rate: bool = False
+    show_volume: bool = False
+    enable_emotion_detection: bool = False
+    enable_gender_detection: bool = False
+    enable_age_detection: bool = False
     # Escape hatch: merged into ``request`` last, so parameters added by the
     # service after this plugin's release remain usable without a new release.
     extra_request_params: dict[str, Any] = field(default_factory=dict)
@@ -69,6 +74,15 @@ class _STTOptions:
             request["enable_speaker_info"] = True
         if self.enable_lid:
             request["enable_lid"] = True
+        for name in (
+            "show_speech_rate",
+            "show_volume",
+            "enable_emotion_detection",
+            "enable_gender_detection",
+            "enable_age_detection",
+        ):
+            if getattr(self, name):
+                request[name] = True
         if self.vad_segment_duration is not None:
             request["vad_segment_duration"] = self.vad_segment_duration
         if self.enable_accelerate_text:

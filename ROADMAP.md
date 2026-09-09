@@ -2,7 +2,7 @@
 
 Staged plan for this repository. Gated items name their trigger and are done when the trigger fires — not speculatively.
 
-## v0.1.0 — first public release (current)
+## v0.1.0 — first public release
 
 Implemented and covered by offline tests:
 
@@ -25,22 +25,21 @@ Scope of the 0.1.0 tag:
 - An [upstream proposal draft](docs/upstream-proposal.md) is prepared; submission
   is separate from this standalone release.
 
-## Unreleased — first capability batch
+## v0.2.0 — capability qualification (current)
 
-Typed speaker/LID options, verified result mapping, and log_id diagnostics are implemented.
-See [capability evidence](docs/capabilities-2026-09-09.md). This is not a release
-or a backend dependency update.
+- Typed speaker/LID and acoustic/trait toggles; standard SpeechData fields and namespaced metadata.
+- Full-mode repeated-sentence replay and corpus control experiment.
+- Provider duration investigated; local transmitted-audio accounting retained.
+- [Qualification results and limits](docs/validation-0.2.0.md).
 
-## Later — evidence-gated hardening
+## Deferred, with evidence triggers
 
-| Item | Trigger |
-|---|---|
-| WebSocket keepalive (`ws_connect(heartbeat=...)`, one line) | E2E item 7 observes idle disconnects **and** the gateway answers pings — a client heartbeat against a ping-deaf gateway would *cause* drops |
-| Response mapping batch: metadata tags and server-side usage; full-result mode validation | A real consumer needs these fields and representative response fixtures are available. v0.1 deduplicates definite utterances within a connection, but full-result mode is not live-validated. |
-| Metadata tag params first-class (`show_speech_rate`, `show_volume`, `enable_emotion_detection`, `enable_gender_detection`, `enable_age_detection`) | ships together with the mapping batch above |
-| Energy gating — skip silent audio before send (gladia-style, a billing optimization) | only if billing is confirmed to charge silent audio |
-
-Parameter-level progress against the full official request surface is tracked in [PARAMETERS.md](PARAMETERS.md) ("Coverage vs the official request surface"): typed inputs, mapped outputs, and live validation are recorded separately.
+- More LID mappings: representative dialect/singing responses plus unambiguous language tags.
+- Trait accuracy: representative consenting real-person data and a concrete use case.
+- Provider billing reconciliation: documented charge semantics and complete acknowledgements.
+- Image/POI/music: a real consumer and controlled validation.
+- Seamless configuration updates: actual mid-speech update demand; current reconnect can discard a partial audio tail.
+- Keepalive: reproduced idle disconnect and a ping-responsive gateway.
 
 ## v0.3+ — upstreaming into livekit/agents
 

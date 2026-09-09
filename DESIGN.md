@@ -102,11 +102,10 @@ stub session); the mapper under test is always the production class.
 
 ## Growth path (matches ROADMAP.md)
 
-- v0.2 speaker separation: graduate the pre-declared `SPEAKER_SEPARATION`
-  bundle (typed options, `requires` swap, `speaker_id` mapping) — registry
-  entry already exists.
-- v0.2 response batch: `consumes` fields land in `_transcript` (result-level)
-  and `stt.py` (payload-level: `audio_info.duration`, `log_id`).
+- v0.2 speaker/LID and metadata mappings are implemented in `_transcript`;
+  typed options and capability requirements remain in their existing layers.
+- Provider duration was investigated but does not replace local usage accounting;
+  log_id correlation is a result-level structured diagnostic. See validation-0.2.0.
 - v0.3 upstream port: module map and test taxonomy translate 1:1 to the
   monorepo's per-plugin layout.
 

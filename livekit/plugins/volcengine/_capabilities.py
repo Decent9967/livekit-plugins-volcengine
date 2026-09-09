@@ -80,7 +80,6 @@ TURN_DETECTION = Capability(
             "definite finals come from the two-pass second pass",
         ),
         requires("show_utterances", True, "definite rides on utterances[]"),
-        requires("result_type", "single", "the mapper assumes incremental semantics"),
     ),
     consumes=("definite", "start_time", "end_time", "words[]"),
     always_check=True,
@@ -107,9 +106,8 @@ LANGUAGE_IDENTIFICATION = Capability(
 
 METADATA_TAGS = Capability(
     name="metadata tags",
-    provides=("emotion / gender / age / rate / volume tags (not mapped yet)"),
-    # each tag is independent server-side; nothing to require client-side yet
-    requirements=(),
+    provides="SpeechData.metadata['volcengine'] provider measurements and estimates",
+    requirements=(requires("show_utterances", True, "metadata rides on utterances[]"),),
     escape_hatch_fields=(
         "enable_emotion_detection",
         "enable_gender_detection",
@@ -117,7 +115,7 @@ METADATA_TAGS = Capability(
         "show_speech_rate",
         "show_volume",
     ),
-    consumes=(),
+    consumes=("utterances[].additions",),
 )
 
 CAPABILITIES: tuple[Capability, ...] = (
