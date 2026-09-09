@@ -55,7 +55,7 @@ the mapper, and the docs:
 **Graduation path** (escape hatch → first-class): add the typed option, move
 the requirement from `requires_escape` to `requires`, implement the
 `consumes` mapping, update the tables. Mechanical, single-capability-sized
-diffs; bundles (speaker separation's four settings) graduate as one unit so
+diffs; bundles (speaker separation's documented settings) graduate as one unit so
 companions cannot drift.
 
 ## Side effects (every effect paired with its reversal)
@@ -84,7 +84,7 @@ hazard matrix and its rationale are in PARAMETERS.md ("Combination hazards").
 |---|---|---|
 | `protocol` | byte-level round-trips vs. the archived official demo | `test_protocol.py` |
 | `_options` | payload assertions (defaults, serialization, escape hatch) | `test_request_payload_defaults` |
-| `_capabilities` | requirement satisfaction / silence of valid combos | `test_partial_speaker_escape_hatch_warns` |
+| `_capabilities` | requirement satisfaction / silence of valid combos | `test_speaker_without_utterances_warns` |
 | `_transcript` | state-machine sequences via the **real** mapper (no fake of it) | `test_empty_definite_still_ends_utterance` |
 | `stt` transport | scripted-WebSocket pipelines driving the real `_run` | `test_unexpected_close_raises_retryable_error` |
 
@@ -102,11 +102,10 @@ stub session); the mapper under test is always the production class.
 
 ## Growth path (matches ROADMAP.md)
 
-- v0.2 speaker separation: graduate the pre-declared `SPEAKER_SEPARATION`
-  bundle (typed options, `requires` swap, `speaker_id` mapping) — registry
-  entry already exists.
-- v0.2 response batch: `consumes` fields land in `_transcript` (result-level)
-  and `stt.py` (payload-level: `audio_info.duration`, `log_id`).
+- v0.2 speaker/LID and metadata mappings are implemented in `_transcript`;
+  typed options and capability requirements remain in their existing layers.
+- Provider duration was investigated but does not replace local usage accounting;
+  log_id correlation is a result-level structured diagnostic. See validation-0.2.0.
 - v0.3 upstream port: module map and test taxonomy translate 1:1 to the
   monorepo's per-plugin layout.
 

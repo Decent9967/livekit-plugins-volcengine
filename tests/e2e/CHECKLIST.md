@@ -13,7 +13,7 @@
 3. **空 final**：需要观察原始响应中的 definite 且 text 为空，再核对 END_OF_SPEECH；CLI 的普通事件输出无法证明原始空 final，不能以空字符串 FINAL 计数替代。
 4. **错误面**：故意用错 key 重跑 → 应立刻收到 APIStatusError 带服务端错误码，而不是挂到超时。
 5. **两个 resource_id**：默认 seedasr 2.0 跑一遍 + `--resource-id volc.bigasr.sauc.duration` 跑一遍。
-6. （可选）`extra_request_params={"enable_speaker_info": True, "ssd_version": "200"}` 观察返回是否带 speaker_id——同时回答公司侧 create_stt 的 ssd_version 断点问题。
+6. （可选）`enable_speaker_info=True` 观察分句 additions 和事件是否带 speaker_id；ASR 2.0 已实测不需要旧隐藏参数 ssd_version。
 
 ## 长对话与异常场景（2026-09-07 精读 deepgram/gladia 后新增）
 

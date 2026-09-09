@@ -108,6 +108,13 @@ class STT(stt.STT):
         base_url: str = DEFAULT_BASE_URL,
         model_name: str = "bigmodel",
         language: str | None = None,
+        enable_speaker_info: bool = False,
+        enable_lid: bool = False,
+        show_speech_rate: bool = False,
+        show_volume: bool = False,
+        enable_emotion_detection: bool = False,
+        enable_gender_detection: bool = False,
+        enable_age_detection: bool = False,
         audio_format: AudioFormat = "pcm",
         codec: Literal["raw", "opus"] = "raw",
         sample_rate: int = 16000,
@@ -142,7 +149,16 @@ class STT(stt.STT):
             model_name: Model name; the service currently only accepts
                 ``bigmodel``.
             language: Recognition language. Leave unset for the default
-                Chinese/English model (also required for speaker separation).
+                Chinese/English model.
+            enable_speaker_info: Return connection-local speaker labels in
+                SpeechData.speaker_id. Requires show_utterances=True.
+            enable_lid: Detect language. Verified Mandarin/English labels map
+                to zh-CN/en; unrecognized labels retain the configured language.
+            show_speech_rate / show_volume: Return provider acoustic measurements
+                in SpeechData.metadata["volcengine"] (tokens/s and provider dB).
+            enable_emotion_detection / enable_gender_detection / enable_age_detection:
+                Return provider estimates and available confidence scores in
+                SpeechData.metadata["volcengine"]. Not verified personal attributes.
             enable_nonstream: Two-pass recognition. With it on, ``definite``
                 results come from the second (non-streaming) pass, which is
                 what this adapter uses for ``FINAL_TRANSCRIPT``.
@@ -176,6 +192,7 @@ class STT(stt.STT):
                 streaming=True,
                 interim_results=interim_results,
                 offline_recognize=False,
+                diarization=True,
             )
         )
 
@@ -191,6 +208,13 @@ class STT(stt.STT):
             base_url=base_url,
             model_name=model_name,
             language=language,
+            enable_speaker_info=enable_speaker_info,
+            enable_lid=enable_lid,
+            show_speech_rate=show_speech_rate,
+            show_volume=show_volume,
+            enable_emotion_detection=enable_emotion_detection,
+            enable_gender_detection=enable_gender_detection,
+            enable_age_detection=enable_age_detection,
             audio_format=audio_format,
             codec=codec,
             sample_rate=sample_rate,
@@ -273,6 +297,13 @@ class STT(stt.STT):
         *,
         language: NotGivenOr[str] = NOT_GIVEN,
         corpus: NotGivenOr[dict[str, Any] | None] = NOT_GIVEN,
+        enable_speaker_info: NotGivenOr[bool] = NOT_GIVEN,
+        enable_lid: NotGivenOr[bool] = NOT_GIVEN,
+        show_speech_rate: NotGivenOr[bool] = NOT_GIVEN,
+        show_volume: NotGivenOr[bool] = NOT_GIVEN,
+        enable_emotion_detection: NotGivenOr[bool] = NOT_GIVEN,
+        enable_gender_detection: NotGivenOr[bool] = NOT_GIVEN,
+        enable_age_detection: NotGivenOr[bool] = NOT_GIVEN,
         end_window_size: NotGivenOr[int] = NOT_GIVEN,
         enable_itn: NotGivenOr[bool] = NOT_GIVEN,
         enable_punc: NotGivenOr[bool] = NOT_GIVEN,
@@ -300,6 +331,13 @@ class STT(stt.STT):
         """
         updates = _filter_given(
             language=language,
+            enable_speaker_info=enable_speaker_info,
+            enable_lid=enable_lid,
+            show_speech_rate=show_speech_rate,
+            show_volume=show_volume,
+            enable_emotion_detection=enable_emotion_detection,
+            enable_gender_detection=enable_gender_detection,
+            enable_age_detection=enable_age_detection,
             corpus=corpus,
             end_window_size=end_window_size,
             enable_itn=enable_itn,
